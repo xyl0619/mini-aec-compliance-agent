@@ -197,6 +197,34 @@ The 6-case result is deliberately described as a **demonstration evaluation succ
 
 The current evaluator checks expected tool use and deterministic tool outputs. It does not yet provide a full semantic judge of every natural-language statement in the final answer.
 
+## Evaluation recording
+
+The current demonstration benchmark contains six cases covering:
+
+- single-item PASS/FAIL checks,
+- multi-rule room evaluation,
+- multi-step item discovery,
+- multiple compliance-tool calls,
+- and missing-item handling.
+
+Latest recorded run:
+
+| Metric | Result |
+|---|---:|
+| Total cases | 6 |
+| Evaluable cases | 6 |
+| Passed cases | 6 |
+| Behaviour failures | 0 |
+| Infrastructure errors | 0 |
+| Execution errors | 0 |
+| Behaviour success rate | 100% |
+| Average tool calls / case | 1.83 |
+| Average agent steps / case | 2.33 |
+
+The model configuration for this run was fixed to `Qwen/Qwen3.5-9B`, `temperature=0`, and `seed=42`.
+
+> This is a small demonstration benchmark rather than a general claim of 100% agent accuracy. The current evaluator focuses on expected tool use and deterministic tool outcomes.
+
 ## Design principles
 
 ### 1. LLM for orchestration, Python for truth
