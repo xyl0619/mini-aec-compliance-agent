@@ -1,0 +1,150 @@
+{
+  "evaluation_name": "Mini AEC Compliance Agent Demonstration Evaluation",
+  "model": "Qwen/Qwen3.5-9B",
+  "timestamp_utc": "2026-08-29T02:27:07.545157+00:00",
+  "scope_note": "This is a small demonstration benchmark. It evaluates expected tool use and deterministic tool outcomes; it is not a general measure of agent reliability or legal compliance accuracy.",
+  "summary": {
+    "total_cases": 6,
+    "passed_cases": 3,
+    "failed_cases": 3,
+    "success_rate": 0.5,
+    "total_tool_calls": 9,
+    "average_tool_calls_per_case": 1.5,
+    "total_agent_steps": 9,
+    "average_agent_steps_per_case": 1.5
+  },
+  "results": [
+    {
+      "id": "single_door_fail",
+      "question": "Is Door-01 compliant?",
+      "passed": false,
+      "errors": [
+        "Agent execution raised APIConnectionError: Connection error."
+      ],
+      "answer": null,
+      "steps": 0,
+      "tool_calls": 0,
+      "tools_used": []
+    },
+    {
+      "id": "single_door_pass",
+      "question": "Is Door-02 compliant?",
+      "passed": false,
+      "errors": [
+        "Agent execution raised APIConnectionError: Connection error."
+      ],
+      "answer": null,
+      "steps": 0,
+      "tool_calls": 0,
+      "tools_used": []
+    },
+    {
+      "id": "single_room_fail",
+      "question": "Is Room-101 compliant?",
+      "passed": false,
+      "errors": [
+        "Agent execution raised APIConnectionError: Connection error."
+      ],
+      "answer": null,
+      "steps": 0,
+      "tool_calls": 0,
+      "tools_used": []
+    },
+    {
+      "id": "all_doors",
+      "question": "Which doors in the building fail compliance?",
+      "passed": true,
+      "errors": [],
+      "answer": "Only **Door-01** (Location: Level 1 Lobby) fails compliance.\n\nIt fails because its clear width is 850 mm, which is less than the required minimum of 900 mm (rule DOOR-WIDTH-001).\n\n- Door-02: PASS\n- Door-03: PASS",
+      "steps": 3,
+      "tool_calls": 4,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "list_items",
+          "arguments": {
+            "item_type": "door"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-01"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-02"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-03"
+          }
+        }
+      ]
+    },
+    {
+      "id": "all_offices",
+      "question": "Which offices fail compliance?",
+      "passed": true,
+      "errors": [],
+      "answer": "**Room-101** is the only office that fails compliance.\n\nThe failures are as follows:\n- **OFFICE-AREA-001**: Office floor area must be at least 10 square metres (actual: 8.5 m²)\n- **SPACE-HEIGHT-001**: Occupied space ceiling height must be at least 2.4 metres (actual: 2.3 m)\n\nRoom-102 passes compliance.",
+      "steps": 3,
+      "tool_calls": 3,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "list_items",
+          "arguments": {
+            "item_type": "office"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Room-101"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Room-102"
+          }
+        }
+      ]
+    },
+    {
+      "id": "missing_item",
+      "question": "Is Door-99 compliant?",
+      "passed": true,
+      "errors": [],
+      "answer": "Door-99 does not exist in this building. The available doors are Door-01, Door-02, and Door-03. Therefore, it is impossible to determine compliance for Door-99, and the status is **UNKNOWN**.",
+      "steps": 3,
+      "tool_calls": 2,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-99"
+          }
+        },
+        {
+          "step": 2,
+          "tool": "list_items",
+          "arguments": {
+            "item_type": "door"
+          }
+        }
+      ]
+    }
+  ]
+}

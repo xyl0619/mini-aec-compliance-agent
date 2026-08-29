@@ -1,0 +1,49 @@
+{
+  "project_name": "Demo Office Building",
+  "components": [
+    {
+      "id": "Door-01",
+      "type": "door",
+      "location": "Level 1 Lobby",
+      "width_mm": 850,
+      "height_mm": 2100
+    },
+    {
+      "id": "Door-02",
+      "type": "door",
+      "location": "Level 1 Main Exit",
+      "width_mm": 1000,
+      "height_mm": 2100
+    },
+    {
+      "id": "Door-03",
+      "type": "door",
+      "location": "Level 2 Office",
+      "width_mm": 920,
+      "height_mm": 2050
+    }
+  ],
+  "spaces": [
+    {
+      "id": "Room-101",
+      "type": "office",
+      "location": "Level 1",
+      "area_m2": 8.5,
+      "ceiling_height_m": 2.3
+    },
+    {
+      "id": "Room-102",
+      "type": "office",
+      "location": "Level 1",
+      "area_m2": 12.5,
+      "ceiling_height_m": 2.6
+    },
+    {
+      "id": "Room-201",
+      "type": "meeting_room",
+      "location": "Level 2",
+      "area_m2": 18.0,
+      "ceiling_height_m": 2.7
+    }
+  ]
+}

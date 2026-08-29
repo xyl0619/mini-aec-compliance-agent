@@ -1,0 +1,77 @@
+[
+  {
+    "id": "single_door_fail",
+    "question": "Is Door-01 compliant?",
+    "expected_checked_items": [
+      "Door-01"
+    ],
+    "expected_statuses": {
+      "Door-01": "FAIL"
+    },
+    "requires_list_items": false
+  },
+
+  {
+    "id": "single_door_pass",
+    "question": "Is Door-02 compliant?",
+    "expected_checked_items": [
+      "Door-02"
+    ],
+    "expected_statuses": {
+      "Door-02": "PASS"
+    },
+    "requires_list_items": false
+  },
+
+  {
+    "id": "single_room_fail",
+    "question": "Is Room-101 compliant?",
+    "expected_checked_items": [
+      "Room-101"
+    ],
+    "expected_statuses": {
+      "Room-101": "FAIL"
+    },
+    "requires_list_items": false
+  },
+
+  {
+    "id": "all_doors",
+    "question": "Which doors in the building fail compliance?",
+    "expected_checked_items": [
+      "Door-01",
+      "Door-02",
+      "Door-03"
+    ],
+    "expected_statuses": {
+      "Door-01": "FAIL",
+      "Door-02": "PASS",
+      "Door-03": "PASS"
+    },
+    "requires_list_items": true
+  },
+
+  {
+    "id": "all_offices",
+    "question": "Which offices fail compliance?",
+    "expected_checked_items": [
+      "Room-101",
+      "Room-102"
+    ],
+    "expected_statuses": {
+      "Room-101": "FAIL",
+      "Room-102": "PASS"
+    },
+    "requires_list_items": true
+  },
+
+  {
+    "id": "missing_item",
+    "question": "Is Door-99 compliant?",
+    "expected_checked_items": [
+      "Door-99"
+    ],
+    "expected_error": true,
+    "requires_list_items": false
+  }
+]

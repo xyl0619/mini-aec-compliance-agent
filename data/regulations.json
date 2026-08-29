@@ -1,0 +1,32 @@
+{
+  "note": "These are fictional demonstration rules for educational purposes only.",
+  "rules": [
+    {
+      "rule_id": "DOOR-WIDTH-001",
+      "applies_to": "door",
+      "field": "width_mm",
+      "operator": ">=",
+      "threshold": 900,
+      "unit": "mm",
+      "description": "Door clear width must be at least 900 mm."
+    },
+    {
+      "rule_id": "OFFICE-AREA-001",
+      "applies_to": "office",
+      "field": "area_m2",
+      "operator": ">=",
+      "threshold": 10.0,
+      "unit": "m2",
+      "description": "Office floor area must be at least 10 square metres."
+    },
+    {
+      "rule_id": "SPACE-HEIGHT-001",
+      "applies_to": "space",
+      "field": "ceiling_height_m",
+      "operator": ">=",
+      "threshold": 2.4,
+      "unit": "m",
+      "description": "Occupied space ceiling height must be at least 2.4 metres."
+    }
+  ]
+}
