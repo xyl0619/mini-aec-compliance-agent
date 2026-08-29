@@ -1,61 +1,100 @@
 {
   "evaluation_name": "Mini AEC Compliance Agent Demonstration Evaluation",
-  "model": "Qwen/Qwen3.5-9B",
-  "timestamp_utc": "2026-08-29T02:27:07.545157+00:00",
-  "scope_note": "This is a small demonstration benchmark. It evaluates expected tool use and deterministic tool outcomes; it is not a general measure of agent reliability or legal compliance accuracy.",
+  "timestamp_utc": "2026-08-29T03:18:49.164288+00:00",
+  "configuration": {
+    "model": "Qwen/Qwen3.5-9B",
+    "temperature": 0,
+    "seed": 42,
+    "max_agent_steps": 8
+  },
+  "scope_note": "This is a small demonstration benchmark. Behavior success is calculated only over cases that completed without infrastructure or execution errors. Infrastructure errors are reported separately and are not treated as agent reasoning failures. The benchmark does not constitute a general measure of agent reliability or legal compliance accuracy.",
   "summary": {
     "total_cases": 6,
-    "passed_cases": 3,
-    "failed_cases": 3,
-    "success_rate": 0.5,
-    "total_tool_calls": 9,
-    "average_tool_calls_per_case": 1.5,
-    "total_agent_steps": 9,
-    "average_agent_steps_per_case": 1.5
+    "evaluable_cases": 6,
+    "passed_cases": 6,
+    "behavior_failures": 0,
+    "infrastructure_errors": 0,
+    "execution_errors": 0,
+    "total_errors": 0,
+    "behavior_success_rate": 1.0,
+    "total_tool_calls_evaluable": 11,
+    "average_tool_calls_per_evaluable_case": 1.8333333333333333,
+    "total_agent_steps_evaluable": 14,
+    "average_agent_steps_per_evaluable_case": 2.3333333333333335
   },
   "results": [
     {
       "id": "single_door_fail",
       "question": "Is Door-01 compliant?",
-      "passed": false,
-      "errors": [
-        "Agent execution raised APIConnectionError: Connection error."
-      ],
-      "answer": null,
-      "steps": 0,
-      "tool_calls": 0,
-      "tools_used": []
+      "outcome": "PASS",
+      "error_category": null,
+      "passed": true,
+      "errors": [],
+      "warnings": [],
+      "answer": "**Door-01 is NOT compliant.**\n\nIt fails the **DOOR-WIDTH-001** rule, which requires a door clear width of at least 900 mm. Door-01 has a width of only 850 mm.",
+      "steps": 2,
+      "tool_calls": 1,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-01"
+          }
+        }
+      ]
     },
     {
       "id": "single_door_pass",
       "question": "Is Door-02 compliant?",
-      "passed": false,
-      "errors": [
-        "Agent execution raised APIConnectionError: Connection error."
-      ],
-      "answer": null,
-      "steps": 0,
-      "tool_calls": 0,
-      "tools_used": []
+      "outcome": "PASS",
+      "error_category": null,
+      "passed": true,
+      "errors": [],
+      "warnings": [],
+      "answer": "Yes, **Door-02** is compliant.\n\nIt has an overall status of **PASS**. The door is located on Level 1 Main Exit, has a width of 1000 mm and a height of 2100 mm. It successfully passed the check for door clear width (DOOR-WIDTH-001), which requires a minimum of 900 mm.",
+      "steps": 2,
+      "tool_calls": 1,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Door-02"
+          }
+        }
+      ]
     },
     {
       "id": "single_room_fail",
       "question": "Is Room-101 compliant?",
-      "passed": false,
-      "errors": [
-        "Agent execution raised APIConnectionError: Connection error."
-      ],
-      "answer": null,
-      "steps": 0,
-      "tool_calls": 0,
-      "tools_used": []
+      "outcome": "PASS",
+      "error_category": null,
+      "passed": true,
+      "errors": [],
+      "warnings": [],
+      "answer": "**Room-101 is NOT compliant.**\n\nThe room failed two compliance checks:\n\n1.  **OFFICE-AREA-001**: The floor area is **8.5 m²**, but the rule requires a minimum of **10.0 m²**.\n2.  **SPACE-HEIGHT-001**: The ceiling height is **2.3 m**, but the rule requires a minimum of **2.4 m**.",
+      "steps": 2,
+      "tool_calls": 1,
+      "tools_used": [
+        {
+          "step": 1,
+          "tool": "check_item_compliance",
+          "arguments": {
+            "item_id": "Room-101"
+          }
+        }
+      ]
     },
     {
       "id": "all_doors",
       "question": "Which doors in the building fail compliance?",
+      "outcome": "PASS",
+      "error_category": null,
       "passed": true,
       "errors": [],
-      "answer": "Only **Door-01** (Location: Level 1 Lobby) fails compliance.\n\nIt fails because its clear width is 850 mm, which is less than the required minimum of 900 mm (rule DOOR-WIDTH-001).\n\n- Door-02: PASS\n- Door-03: PASS",
+      "warnings": [],
+      "answer": "Based on the compliance checks:\n\n- **Door-01** (Level 1 Lobby): **FAIL** - The door width is 850 mm, which is below the required minimum of 900 mm (Rule DOOR-WIDTH-001).\n- **Door-02** (Level 1 Main Exit): **PASS** - The door width is 1000 mm, which meets the requirement.\n- **Door-03** (Level 2 Office): **PASS** - The door width is 920 mm, which meets the requirement.\n\n**Only Door-01 fails compliance.**",
       "steps": 3,
       "tool_calls": 4,
       "tools_used": [
@@ -92,9 +131,12 @@
     {
       "id": "all_offices",
       "question": "Which offices fail compliance?",
+      "outcome": "PASS",
+      "error_category": null,
       "passed": true,
       "errors": [],
-      "answer": "**Room-101** is the only office that fails compliance.\n\nThe failures are as follows:\n- **OFFICE-AREA-001**: Office floor area must be at least 10 square metres (actual: 8.5 m²)\n- **SPACE-HEIGHT-001**: Occupied space ceiling height must be at least 2.4 metres (actual: 2.3 m)\n\nRoom-102 passes compliance.",
+      "warnings": [],
+      "answer": "Based on the compliance checks:\n\n- **Room-101**: **FAIL**\n  - Fails `OFFICE-AREA-001`: Area is 8.5 m² (minimum required is 10.0 m²).\n  - Fails `SPACE-HEIGHT-001`: Ceiling height is 2.3 m (minimum required is 2.4 m).\n\n- **Room-102**: **PASS**\n  - Meets all requirements.\n\n**Conclusion:** Only **Room-101** fails compliance.",
       "steps": 3,
       "tool_calls": 3,
       "tools_used": [
@@ -124,24 +166,20 @@
     {
       "id": "missing_item",
       "question": "Is Door-99 compliant?",
+      "outcome": "PASS",
+      "error_category": null,
       "passed": true,
       "errors": [],
-      "answer": "Door-99 does not exist in this building. The available doors are Door-01, Door-02, and Door-03. Therefore, it is impossible to determine compliance for Door-99, and the status is **UNKNOWN**.",
-      "steps": 3,
-      "tool_calls": 2,
+      "warnings": [],
+      "answer": "Door-99 was not found in the dataset.",
+      "steps": 2,
+      "tool_calls": 1,
       "tools_used": [
         {
           "step": 1,
           "tool": "check_item_compliance",
           "arguments": {
             "item_id": "Door-99"
-          }
-        },
-        {
-          "step": 2,
-          "tool": "list_items",
-          "arguments": {
-            "item_type": "door"
           }
         }
       ]

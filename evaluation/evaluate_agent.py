@@ -2,316 +2,835 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from agent import MODEL_NAME, run_agent
+import together
+
+from agent import (
+    MAX_AGENT_STEPS,
+    MODEL_NAME,
+    MODEL_SEED,
+    MODEL_TEMPERATURE,
+    run_agent
+)
 
 
-BASE_DIR = Path(__file__).resolve().parent
-TEST_CASES_FILE = BASE_DIR / "test_cases.json"
-RESULTS_FILE = BASE_DIR / "results.json"
+# ============================================================
+# Paths
+# ============================================================
 
+BASE_DIR = (
+    Path(__file__)
+    .resolve()
+    .parent
+)
+
+TEST_CASES_FILE = (
+    BASE_DIR
+    / "test_cases.json"
+)
+
+RESULTS_FILE = (
+    BASE_DIR
+    / "results.json"
+)
+
+
+# ============================================================
+# Error categories
+# ============================================================
+
+INFRASTRUCTURE_ERRORS = (
+    together.APIConnectionError,
+    together.APITimeoutError,
+    together.RateLimitError,
+    together.InternalServerError
+)
+
+
+# ============================================================
+# Load test cases
+# ============================================================
 
 def load_test_cases():
     """
-    Load all agent evaluation cases from test_cases.json.
+    Load the agent evaluation cases.
     """
+
     with open(
         TEST_CASES_FILE,
         "r",
         encoding="utf-8"
     ) as file:
-        return json.load(file)
+
+        return json.load(
+            file
+        )
 
 
-def get_compliance_calls(trace):
+# ============================================================
+# Trace helpers
+# ============================================================
+
+def get_compliance_calls(
+    trace
+):
     """
-    Extract all check_item_compliance calls
-    from an agent execution trace.
+    Return only check_item_compliance
+    events from the agent trace.
     """
+
     return [
         event
         for event in trace
-        if event["tool"] == "check_item_compliance"
+
+        if event["tool"]
+        == "check_item_compliance"
     ]
 
 
-def evaluate_case(test_case):
+def get_list_calls(
+    trace
+):
     """
-    Run one evaluation case and check whether the agent:
-    - used required discovery tools,
-    - checked the expected items,
-    - returned the expected deterministic tool outcomes,
-    - handled missing items correctly.
+    Return only list_items events.
     """
 
-    print("\n")
-    print("=" * 60)
-    print(f"CASE: {test_case['id']}")
-    print("=" * 60)
+    return [
+        event
+        for event in trace
 
-    print("Question:")
-    print(test_case["question"])
+        if event["tool"]
+        == "list_items"
+    ]
 
-    # --------------------------------------------------
-    # 1. Run the agent
-    # --------------------------------------------------
+
+# ============================================================
+# Error result helper
+# ============================================================
+
+def make_error_result(
+    test_case,
+    error,
+    error_category
+):
+    """
+    Create a standard result for a case that
+    could not be evaluated because execution failed.
+    """
+
+    error_message = (
+        f"{type(error).__name__}: "
+        f"{error}"
+    )
+
+    return {
+        "id": test_case["id"],
+
+        "question": (
+            test_case["question"]
+        ),
+
+        "outcome": "ERROR",
+
+        "error_category": (
+            error_category
+        ),
+
+        "passed": False,
+
+        "errors": [
+            error_message
+        ],
+
+        "warnings": [],
+
+        "answer": None,
+
+        "steps": 0,
+
+        "tool_calls": 0,
+
+        "tools_used": []
+    }
+
+
+# ============================================================
+# Evaluate one case
+# ============================================================
+
+def evaluate_case(
+    test_case
+):
+    """
+    Evaluate one agent task.
+
+    PASS:
+        Agent completed the expected tool-grounded task.
+
+    FAIL:
+        Agent ran successfully but its behaviour did not
+        satisfy the benchmark expectations.
+
+    ERROR:
+        The case could not be evaluated because of
+        infrastructure or execution failure.
+    """
+
+    print(
+        "\n"
+        + "=" * 60
+    )
+
+    print(
+        f"CASE: "
+        f"{test_case['id']}"
+    )
+
+    print(
+        "=" * 60
+    )
+
+    print(
+        "Question:"
+    )
+
+    print(
+        test_case[
+            "question"
+        ]
+    )
+
+    # --------------------------------------------------------
+    # Run the agent
+    # --------------------------------------------------------
 
     try:
+
         agent_result = run_agent(
             test_case["question"],
             return_trace=True
         )
 
-    except Exception as error:
+    except INFRASTRUCTURE_ERRORS as error:
 
-        error_message = (
-            f"Agent execution raised "
-            f"{type(error).__name__}: {error}"
+        print(
+            "\nRESULT: ERROR"
         )
 
-        print("\nRESULT: FAIL")
-        print(f"- {error_message}")
+        print(
+            "Category: infrastructure"
+        )
 
-        return {
-            "id": test_case["id"],
-            "question": test_case["question"],
-            "passed": False,
-            "errors": [error_message],
-            "answer": None,
-            "steps": 0,
-            "tool_calls": 0,
-            "tools_used": []
-        }
+        print(
+            f"- {type(error).__name__}: "
+            f"{error}"
+        )
 
-    trace = agent_result["trace"]
+        return make_error_result(
+            test_case=test_case,
+            error=error,
+            error_category="infrastructure"
+        )
 
-    errors = []
+    except Exception as error:
 
-    # --------------------------------------------------
-    # 2. Check whether list_items was used when required
-    # --------------------------------------------------
+        print(
+            "\nRESULT: ERROR"
+        )
 
-    used_list_items = any(
-        event["tool"] == "list_items"
-        for event in trace
+        print(
+            "Category: execution"
+        )
+
+        print(
+            f"- {type(error).__name__}: "
+            f"{error}"
+        )
+
+        return make_error_result(
+            test_case=test_case,
+            error=error,
+            error_category="execution"
+        )
+
+    trace = (
+        agent_result[
+            "trace"
+        ]
     )
 
-    if (
+    errors = []
+    warnings = []
+
+    # --------------------------------------------------------
+    # 1. Check discovery behaviour
+    # --------------------------------------------------------
+
+    list_calls = (
+        get_list_calls(
+            trace
+        )
+    )
+
+    used_list_items = (
+        len(list_calls) > 0
+    )
+
+    requires_list_items = (
         test_case.get(
             "requires_list_items",
             False
         )
+    )
+
+    if (
+        requires_list_items
         and not used_list_items
     ):
+
         errors.append(
-            "Agent should have used list_items."
+            "Agent should have used "
+            "list_items before checking "
+            "a multi-item category."
         )
 
-    # --------------------------------------------------
-    # 3. Collect compliance tool calls
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 2. Collect compliance checks
+    # --------------------------------------------------------
 
-    compliance_calls = get_compliance_calls(
-        trace
+    compliance_calls = (
+        get_compliance_calls(
+            trace
+        )
     )
 
     checked_items = [
-        call["arguments"]["item_id"]
-        for call in compliance_calls
+        call[
+            "arguments"
+        ].get(
+            "item_id"
+        )
+
+        for call
+        in compliance_calls
     ]
 
-    expected_items = test_case.get(
-        "expected_checked_items",
-        []
+    checked_items = [
+        item_id
+
+        for item_id
+        in checked_items
+
+        if item_id
+        is not None
+    ]
+
+    expected_items = (
+        test_case.get(
+            "expected_checked_items",
+            []
+        )
     )
 
-    # --------------------------------------------------
-    # 4. Check whether all expected items were checked
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 3. Check whether every expected item was inspected
+    # --------------------------------------------------------
 
-    for expected_item in expected_items:
+    for expected_item in (
+        expected_items
+    ):
 
-        if expected_item not in checked_items:
+        if expected_item not in (
+            checked_items
+        ):
 
             errors.append(
                 f"Agent did not check "
                 f"{expected_item}."
             )
 
-    # --------------------------------------------------
-    # 5. Check whether unexpected items were checked
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 4. Extra checks are warnings, not hard failures
+    # --------------------------------------------------------
+    #
+    # An agent may occasionally gather extra evidence.
+    # This can be inefficient but does not necessarily mean
+    # the task itself was completed incorrectly.
+    # --------------------------------------------------------
 
     unexpected_items = [
         item_id
-        for item_id in checked_items
-        if item_id not in expected_items
+
+        for item_id
+        in checked_items
+
+        if item_id
+        not in expected_items
     ]
 
     if unexpected_items:
 
-        errors.append(
-            "Agent checked unexpected item(s): "
-            + ", ".join(unexpected_items)
+        unique_unexpected = sorted(
+            set(
+                unexpected_items
+            )
         )
 
-    # --------------------------------------------------
-    # 6. Check deterministic PASS / FAIL results
-    # --------------------------------------------------
+        warnings.append(
+            "Agent checked additional "
+            "item(s): "
+            + ", ".join(
+                unique_unexpected
+            )
+        )
 
-    expected_statuses = test_case.get(
-        "expected_statuses",
-        {}
+    # --------------------------------------------------------
+    # 5. Detect duplicate compliance checks
+    # --------------------------------------------------------
+
+    duplicate_items = sorted(
+        {
+            item_id
+
+            for item_id
+            in checked_items
+
+            if checked_items.count(
+                item_id
+            ) > 1
+        }
     )
 
-    for item_id, expected_status in (
-        expected_statuses.items()
-    ):
+    if duplicate_items:
+
+        warnings.append(
+            "Agent repeated compliance "
+            "checks for: "
+            + ", ".join(
+                duplicate_items
+            )
+        )
+
+    # --------------------------------------------------------
+    # 6. Verify deterministic PASS / FAIL outcomes
+    # --------------------------------------------------------
+
+    expected_statuses = (
+        test_case.get(
+            "expected_statuses",
+            {}
+        )
+    )
+
+    for (
+        item_id,
+        expected_status
+    ) in expected_statuses.items():
 
         matching_calls = [
             call
-            for call in compliance_calls
+
+            for call
+            in compliance_calls
+
             if (
-                call["arguments"]["item_id"]
+                call[
+                    "arguments"
+                ].get(
+                    "item_id"
+                )
                 == item_id
             )
         ]
 
-        # Missing calls were already detected above
+        # Missing call was already reported above.
         if not matching_calls:
             continue
 
-        actual_status = matching_calls[-1][
-            "result"
-        ].get("overall_status")
+        actual_status = (
+            matching_calls[-1][
+                "result"
+            ].get(
+                "overall_status"
+            )
+        )
 
-        if actual_status != expected_status:
+        if (
+            actual_status
+            != expected_status
+        ):
 
             errors.append(
-                f"{item_id}: expected "
+                f"{item_id}: "
+                f"expected "
                 f"{expected_status}, "
-                f"got {actual_status}."
+                f"got "
+                f"{actual_status}."
             )
 
-    # --------------------------------------------------
-    # 7. Check missing-item behaviour
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 7. Verify missing-item handling
+    # --------------------------------------------------------
 
-    if test_case.get(
-        "expected_error",
-        False
-    ):
+    expected_error = (
+        test_case.get(
+            "expected_error",
+            False
+        )
+    )
+
+    if expected_error:
 
         found_error = any(
-            "error" in call["result"]
-            for call in compliance_calls
+            isinstance(
+                call.get(
+                    "result"
+                ),
+                dict
+            )
+            and (
+                "error"
+                in call[
+                    "result"
+                ]
+            )
+
+            for call
+            in compliance_calls
         )
 
         if not found_error:
 
             errors.append(
-                "Expected missing-item error "
-                "was not returned."
+                "Expected missing-item "
+                "error was not returned."
             )
 
-    # --------------------------------------------------
-    # 8. Determine PASS / FAIL
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 8. Check final-answer availability
+    # --------------------------------------------------------
 
-    passed = len(errors) == 0
+    final_answer = (
+        agent_result.get(
+            "answer"
+        )
+    )
 
-    print("\nFinal answer:")
-    print(agent_result["answer"])
+    if not final_answer:
 
-    print("\nTools used:")
-
-    for event in trace:
-
-        print(
-            f"- {event['tool']} "
-            f"{event['arguments']}"
+        errors.append(
+            "Agent produced no final answer."
         )
 
-    if passed:
+    # --------------------------------------------------------
+    # 9. Detect max-step termination
+    # --------------------------------------------------------
 
-        print("\nRESULT: PASS")
+    if (
+        agent_result.get(
+            "steps"
+        )
+        >= MAX_AGENT_STEPS
+        and final_answer
+        and (
+            "maximum number"
+            in final_answer.lower()
+        )
+    ):
+
+        errors.append(
+            "Agent reached the maximum "
+            "step limit without completing "
+            "the task."
+        )
+
+    # --------------------------------------------------------
+    # 10. Determine behavioural outcome
+    # --------------------------------------------------------
+
+    passed = (
+        len(errors) == 0
+    )
+
+    outcome = (
+        "PASS"
+        if passed
+        else "FAIL"
+    )
+
+    print(
+        "\nFinal answer:"
+    )
+
+    print(
+        final_answer
+    )
+
+    print(
+        "\nTools used:"
+    )
+
+    if not trace:
+
+        print(
+            "- No tools used"
+        )
 
     else:
 
-        print("\nRESULT: FAIL")
+        for event in trace:
+
+            print(
+                f"- Step "
+                f"{event['step']}: "
+                f"{event['tool']} "
+                f"{event['arguments']}"
+            )
+
+    if warnings:
+
+        print(
+            "\nWarnings:"
+        )
+
+        for warning in warnings:
+
+            print(
+                f"- {warning}"
+            )
+
+    print(
+        f"\nRESULT: "
+        f"{outcome}"
+    )
+
+    if errors:
+
+        print(
+            "Behaviour errors:"
+        )
 
         for error in errors:
 
-            print(f"- {error}")
+            print(
+                f"- {error}"
+            )
 
-    # --------------------------------------------------
-    # 9. Save a compact tool trace
-    # --------------------------------------------------
+    # --------------------------------------------------------
+    # 11. Compact tool trace for results.json
+    # --------------------------------------------------------
 
     tools_used = [
         {
-            "step": event["step"],
-            "tool": event["tool"],
-            "arguments": event["arguments"]
+            "step": (
+                event["step"]
+            ),
+
+            "tool": (
+                event["tool"]
+            ),
+
+            "arguments": (
+                event["arguments"]
+            )
         }
-        for event in trace
+
+        for event
+        in trace
     ]
 
     return {
-        "id": test_case["id"],
-        "question": test_case["question"],
-        "passed": passed,
-        "errors": errors,
-        "answer": agent_result["answer"],
-        "steps": agent_result["steps"],
-        "tool_calls": len(trace),
-        "tools_used": tools_used
+        "id": (
+            test_case["id"]
+        ),
+
+        "question": (
+            test_case[
+                "question"
+            ]
+        ),
+
+        "outcome": (
+            outcome
+        ),
+
+        "error_category": None,
+
+        "passed": (
+            passed
+        ),
+
+        "errors": (
+            errors
+        ),
+
+        "warnings": (
+            warnings
+        ),
+
+        "answer": (
+            final_answer
+        ),
+
+        "steps": (
+            agent_result[
+                "steps"
+            ]
+        ),
+
+        "tool_calls": (
+            len(trace)
+        ),
+
+        "tools_used": (
+            tools_used
+        )
     }
 
 
-def save_results(results):
+# ============================================================
+# Save evaluation results
+# ============================================================
+
+def save_results(
+    results
+):
     """
-    Save a machine-readable evaluation summary
-    to evaluation/results.json.
+    Save evaluation metadata, summary metrics,
+    and per-case results to results.json.
     """
 
-    total_count = len(results)
+    total_count = (
+        len(results)
+    )
 
     passed_count = sum(
-        result["passed"]
-        for result in results
+        result[
+            "outcome"
+        ] == "PASS"
+
+        for result
+        in results
     )
 
-    failed_count = (
-        total_count - passed_count
+    failed_count = sum(
+        result[
+            "outcome"
+        ] == "FAIL"
+
+        for result
+        in results
     )
 
-    success_rate = (
-        passed_count / total_count
-        if total_count > 0
-        else 0
+    infrastructure_error_count = sum(
+        (
+            result[
+                "outcome"
+            ] == "ERROR"
+        )
+        and (
+            result.get(
+                "error_category"
+            )
+            == "infrastructure"
+        )
+
+        for result
+        in results
     )
+
+    execution_error_count = sum(
+        (
+            result[
+                "outcome"
+            ] == "ERROR"
+        )
+        and (
+            result.get(
+                "error_category"
+            )
+            == "execution"
+        )
+
+        for result
+        in results
+    )
+
+    error_count = (
+        infrastructure_error_count
+        + execution_error_count
+    )
+
+    evaluable_count = (
+        passed_count
+        + failed_count
+    )
+
+    behavior_success_rate = (
+        passed_count
+        / evaluable_count
+
+        if evaluable_count > 0
+
+        else None
+    )
+
+    # --------------------------------------------------------
+    # Metrics over evaluable cases only
+    # --------------------------------------------------------
+
+    evaluable_results = [
+        result
+
+        for result
+        in results
+
+        if result[
+            "outcome"
+        ] in [
+            "PASS",
+            "FAIL"
+        ]
+    ]
 
     total_tool_calls = sum(
-        result["tool_calls"]
-        for result in results
+        result[
+            "tool_calls"
+        ]
+
+        for result
+        in evaluable_results
     )
 
     total_agent_steps = sum(
-        result["steps"]
-        for result in results
+        result[
+            "steps"
+        ]
+
+        for result
+        in evaluable_results
     )
 
     average_tool_calls = (
-        total_tool_calls / total_count
-        if total_count > 0
-        else 0
+        total_tool_calls
+        / evaluable_count
+
+        if evaluable_count > 0
+
+        else None
     )
 
     average_agent_steps = (
-        total_agent_steps / total_count
-        if total_count > 0
-        else 0
+        total_agent_steps
+        / evaluable_count
+
+        if evaluable_count > 0
+
+        else None
     )
+
+    # --------------------------------------------------------
+    # Output artifact
+    # --------------------------------------------------------
 
     output = {
         "evaluation_name": (
@@ -319,43 +838,94 @@ def save_results(results):
             "Demonstration Evaluation"
         ),
 
-        "model": MODEL_NAME,
+        "timestamp_utc": (
+            datetime.now(
+                timezone.utc
+            ).isoformat()
+        ),
 
-        "timestamp_utc": datetime.now(
-            timezone.utc
-        ).isoformat(),
+        "configuration": {
+            "model": (
+                MODEL_NAME
+            ),
+
+            "temperature": (
+                MODEL_TEMPERATURE
+            ),
+
+            "seed": (
+                MODEL_SEED
+            ),
+
+            "max_agent_steps": (
+                MAX_AGENT_STEPS
+            )
+        },
 
         "scope_note": (
             "This is a small demonstration benchmark. "
-            "It evaluates expected tool use and deterministic "
-            "tool outcomes; it is not a general measure of "
+            "Behavior success is calculated only over "
+            "cases that completed without infrastructure "
+            "or execution errors. Infrastructure errors "
+            "are reported separately and are not treated "
+            "as agent reasoning failures. The benchmark "
+            "does not constitute a general measure of "
             "agent reliability or legal compliance accuracy."
         ),
 
         "summary": {
-            "total_cases": total_count,
-            "passed_cases": passed_count,
-            "failed_cases": failed_count,
-            "success_rate": success_rate,
+            "total_cases": (
+                total_count
+            ),
 
-            "total_tool_calls": (
+            "evaluable_cases": (
+                evaluable_count
+            ),
+
+            "passed_cases": (
+                passed_count
+            ),
+
+            "behavior_failures": (
+                failed_count
+            ),
+
+            "infrastructure_errors": (
+                infrastructure_error_count
+            ),
+
+            "execution_errors": (
+                execution_error_count
+            ),
+
+            "total_errors": (
+                error_count
+            ),
+
+            "behavior_success_rate": (
+                behavior_success_rate
+            ),
+
+            "total_tool_calls_evaluable": (
                 total_tool_calls
             ),
 
-            "average_tool_calls_per_case": (
+            "average_tool_calls_per_evaluable_case": (
                 average_tool_calls
             ),
 
-            "total_agent_steps": (
+            "total_agent_steps_evaluable": (
                 total_agent_steps
             ),
 
-            "average_agent_steps_per_case": (
+            "average_agent_steps_per_evaluable_case": (
                 average_agent_steps
             )
         },
 
-        "results": results
+        "results": (
+            results
+        )
     }
 
     with open(
@@ -374,53 +944,134 @@ def save_results(results):
     return output
 
 
+# ============================================================
+# Main evaluation runner
+# ============================================================
+
 def main():
-    """
-    Run all evaluation cases, print a summary,
-    and save results.json.
-    """
 
-    test_cases = load_test_cases()
+    test_cases = (
+        load_test_cases()
+    )
 
-    results = [
-        evaluate_case(test_case)
-        for test_case in test_cases
-    ]
+    results = []
 
-    output = save_results(results)
+    for test_case in (
+        test_cases
+    ):
 
-    summary = output["summary"]
+        result = (
+            evaluate_case(
+                test_case
+            )
+        )
 
-    print("\n")
-    print("=" * 60)
-    print("EVALUATION SUMMARY")
-    print("=" * 60)
+        results.append(
+            result
+        )
+
+    output = (
+        save_results(
+            results
+        )
+    )
+
+    summary = (
+        output[
+            "summary"
+        ]
+    )
 
     print(
-        f"Passed: "
-        f"{summary['passed_cases']}/"
+        "\n"
+        + "=" * 60
+    )
+
+    print(
+        "EVALUATION SUMMARY"
+    )
+
+    print(
+        "=" * 60
+    )
+
+    print(
+        f"Total cases: "
         f"{summary['total_cases']}"
     )
 
     print(
-        f"Success rate: "
-        f"{summary['success_rate'] * 100:.1f}%"
+        f"Evaluable cases: "
+        f"{summary['evaluable_cases']}"
     )
 
     print(
-        f"Total tool calls: "
-        f"{summary['total_tool_calls']}"
+        f"Passed: "
+        f"{summary['passed_cases']}"
     )
 
     print(
-        f"Average tool calls/case: "
-        f"{summary['average_tool_calls_per_case']:.2f}"
+        f"Behavior failures: "
+        f"{summary['behavior_failures']}"
     )
 
     print(
-        f"Average agent steps/case: "
-        f"{summary['average_agent_steps_per_case']:.2f}"
+        f"Infrastructure errors: "
+        f"{summary['infrastructure_errors']}"
     )
+
+    print(
+        f"Execution errors: "
+        f"{summary['execution_errors']}"
+    )
+
+    behavior_rate = (
+        summary[
+            "behavior_success_rate"
+        ]
+    )
+
+    if behavior_rate is None:
+
+        print(
+            "Behavior success rate: "
+            "N/A"
+        )
+
+    else:
+
+        print(
+            f"Behavior success rate: "
+            f"{behavior_rate * 100:.1f}%"
+        )
+
+    average_tool_calls = (
+        summary[
+            "average_tool_calls_per_evaluable_case"
+        ]
+    )
+
+    if average_tool_calls is not None:
+
+        print(
+            f"Average tool calls / "
+            f"evaluable case: "
+            f"{average_tool_calls:.2f}"
+        )
+
+    average_steps = (
+        summary[
+            "average_agent_steps_per_evaluable_case"
+        ]
+    )
+
+    if average_steps is not None:
+
+        print(
+            f"Average agent steps / "
+            f"evaluable case: "
+            f"{average_steps:.2f}"
+        )
 
     print(
         f"Results saved to: "
