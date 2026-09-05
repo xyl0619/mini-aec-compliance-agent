@@ -81,7 +81,7 @@ jobs:
       - name: Scan committed files for secrets
         run: |
           uv run detect-secrets scan --baseline .secrets.baseline --force-use-all-plugins
-          git diff --exit-code -- .secrets.baseline
+          git diff --exit-code --ignore-matching-lines='"generated_at":' -- .secrets.baseline
 
   container:
     runs-on: ubuntu-24.04
