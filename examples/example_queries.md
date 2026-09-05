@@ -1,6 +1,12 @@
 # Example Queries
 
-Try these after starting the CLI with `python main.py`.
+Try these after starting the CLI with `uv run mini-aec-agent`.
+
+For a single non-interactive question, run:
+
+```bash
+uv run mini-aec-agent --question "Is Door-01 compliant?" --trace
+```
 
 ## Single-item checks
 

@@ -1,0 +1,155 @@
+{
+  "evaluation_name": "Mini AEC Regulation Retrieval Evaluation",
+  "timestamp_utc": "2026-09-03T08:23:25.040589+00:00",
+  "scope_note": "A small bootstrap benchmark over one regulation document. Relevant chunks were manually selected and should be expanded before making general retrieval-quality claims.",
+  "configuration": {
+    "index_file": "regulation_chunks.json",
+    "top_k": 5,
+    "retriever": "BM25 with query-bigram bonus"
+  },
+  "summary": {
+    "total_cases": 8,
+    "hits": 8,
+    "hit_rate_at_k": 1.0,
+    "mean_reciprocal_rank": 1.0
+  },
+  "results": [
+    {
+      "id": "mandatory_door_width",
+      "query": "door width doors accessible routes 800 mm",
+      "expected_chunk_ids": [
+        "BFA2025-p066-c001"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p066-c001",
+        "BFA2025-p133-c002",
+        "BFA2025-p071-c002",
+        "BFA2025-p145-c001",
+        "BFA2025-p068-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "access_route_width",
+      "query": "access route clear width",
+      "expected_chunk_ids": [
+        "BFA2025-p032-c002"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p032-c002",
+        "BFA2025-p036-c002",
+        "BFA2025-p036-c001",
+        "BFA2025-p126-c001",
+        "BFA2025-p062-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "door_handle_space",
+      "query": "unobstructed area door handle",
+      "expected_chunk_ids": [
+        "BFA2025-p066-c001",
+        "BFA2025-p071-c002"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p071-c002",
+        "BFA2025-p066-c001",
+        "BFA2025-p157-c001",
+        "BFA2025-p069-c001",
+        "BFA2025-p071-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "door_threshold",
+      "query": "door threshold gradient",
+      "expected_chunk_ids": [
+        "BFA2025-p071-c002"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p071-c002",
+        "BFA2025-p039-c001",
+        "BFA2025-p068-c001",
+        "BFA2025-p037-c001",
+        "BFA2025-p005-c002"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "ramp_gradient",
+      "query": "ramp gradient wheelchair",
+      "expected_chunk_ids": [
+        "BFA2025-p039-c001"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p039-c001",
+        "BFA2025-p037-c001",
+        "BFA2025-p041-c001",
+        "BFA2025-p039-c002",
+        "BFA2025-p038-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "tactile_path",
+      "query": "tactile guide path access route",
+      "expected_chunk_ids": [
+        "BFA2025-p032-c002"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p032-c002",
+        "BFA2025-p036-c001",
+        "BFA2025-p036-c002",
+        "BFA2025-p098-c001",
+        "BFA2025-p006-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "stair_handrail",
+      "query": "stair handrail height",
+      "expected_chunk_ids": [
+        "BFA2025-p056-c001"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p056-c001",
+        "BFA2025-p055-c001",
+        "BFA2025-p051-c001",
+        "BFA2025-p055-c002",
+        "BFA2025-p049-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "id": "lift_dimensions",
+      "query": "lift car internal dimensions wheelchair",
+      "expected_chunk_ids": [
+        "BFA2025-p114-c001"
+      ],
+      "returned_chunk_ids": [
+        "BFA2025-p114-c001",
+        "BFA2025-p113-c002",
+        "BFA2025-p120-c001",
+        "BFA2025-p113-c001",
+        "BFA2025-p118-c001"
+      ],
+      "hit": true,
+      "first_relevant_rank": 1,
+      "reciprocal_rank": 1.0
+    }
+  ]
+}

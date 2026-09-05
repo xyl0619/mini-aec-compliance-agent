@@ -1,11 +1,36 @@
 .venv/
+.venv-*/
+.uv-cache/
 .env
+.env.*
+!.env.example
 
 __pycache__/
 *.pyc
+*.pyo
 
 .pytest_cache/
+.cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
 .vscode/
 
 .DS_Store
+
+build/
+dist/
+*.egg-info/
+
+*.log
+*.sqlite3
+artifacts/
+
+# Local regulation source files
+regulations/*.pdf
+
+# Generated RAG artifacts
+data/processed/

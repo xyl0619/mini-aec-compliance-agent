@@ -1,8 +1,4 @@
-from tools import (
-    check_item_compliance,
-    get_item,
-    list_items
-)
+from tools import check_item_compliance, get_item, list_items
 
 
 def test_door_01_should_fail():
@@ -66,10 +62,7 @@ def test_room_101_should_fail():
 
     assert len(checks) == 2
 
-    check_map = {
-        check["rule_id"]: check
-        for check in checks
-    }
+    check_map = {check["rule_id"]: check for check in checks}
 
     area_check = check_map["OFFICE-AREA-001"]
 
@@ -95,10 +88,7 @@ def test_room_102_should_pass():
 
     assert len(checks) == 2
 
-    check_map = {
-        check["rule_id"]: check
-        for check in checks
-    }
+    check_map = {check["rule_id"]: check for check in checks}
 
     area_check = check_map["OFFICE-AREA-001"]
 
@@ -142,10 +132,7 @@ def test_list_all_doors():
 
     assert len(doors) == 3
 
-    door_ids = [
-        door["id"]
-        for door in doors
-    ]
+    door_ids = [door["id"] for door in doors]
 
     assert "Door-01" in door_ids
     assert "Door-02" in door_ids

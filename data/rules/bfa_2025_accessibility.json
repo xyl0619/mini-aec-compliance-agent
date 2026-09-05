@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "catalog_id": "hk-bfa-2008-2025-accessibility",
+  "title": "Prototype rules derived from Design Manual: Barrier Free Access 2008 (2025 Edition)",
+  "version": "2025.1.0",
+  "jurisdiction": "Hong Kong SAR",
+  "status": "prototype",
+  "note": "Prototype transcription for engineering demonstration. Always verify against the official document before professional use.",
+  "rules": [
+    {
+      "rule_id": "HK-BFA-DOOR-WIDTH-038",
+      "version": "1.0",
+      "applies_to": "door",
+      "field": "width_mm",
+      "operator": ">=",
+      "threshold": 800,
+      "unit": "mm",
+      "description": "A door on an accessible route must have a clear width of at least 800 mm.",
+      "applicability_field": "on_accessible_route",
+      "applicability_value": true,
+      "source": {
+        "document_id": "BFA2025",
+        "title": "Design Manual: Barrier Free Access 2008 (2025 Edition)",
+        "source_url": "https://www.bd.gov.hk/doc/en/resources/codes-and-references/code-and-design-manuals/BFA2008_e.pdf",
+        "pdf_page": 66,
+        "clause_id": "38",
+        "section": "Division 10 — Doors / Width of Doors",
+        "verified": true,
+        "note": "Threshold manually transcribed for prototype evaluation. The IFC adapter requires an explicit IfcBoolean OnAccessibleRoute/IsOnAccessibleRoute flag and an IfcLengthMeasure ClearOpeningWidth/ClearWidth property; OverallWidth is not treated as clear width."
+      }
+    }
+  ]
+}

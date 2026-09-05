@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mini-aec-agent"
+version = "0.2.0"
+description = "An inspectable AEC compliance agent with deterministic rule evaluation."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Mini AEC Agent contributors" }]
+dependencies = [
+    "fastapi>=0.116,<1",
+    "ifcopenshell>=0.8.4,<0.9",
+    "opentelemetry-api>=1.30,<2",
+    "opentelemetry-exporter-otlp-proto-http>=1.30,<2",
+    "opentelemetry-instrumentation-fastapi>=0.51b0,<1",
+    "opentelemetry-sdk>=1.30,<2",
+    "pydantic>=2.13,<3",
+    "pypdf[crypto]>=6,<7",
+    "python-dotenv>=1.2,<2",
+    "together>=2.0,<3",
+    "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.15",
+    "pytest>=9.0",
+    "pytest-cov>=7.0",
+    "ruff>=0.14",
+]
+security = [
+    "bandit>=1.9.4,<2",
+    "detect-secrets>=1.5,<2",
+    "pip-audit>=2.9,<3",
+]
+
+[project.scripts]
+mini-aec-agent = "mini_aec_agent.cli:main"
+mini-aec-api = "mini_aec_agent.api.app:run"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+cache_dir = ".cache/pytest"
+filterwarnings = [
+    "ignore:Using .*starlette.testclient.*",
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["mini_aec_agent"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"agent.py" = ["E402"]
+"main.py" = ["E402"]
+"tools.py" = ["E402"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/mini_aec_agent"]
+ignore_missing_imports = true
+warn_unused_configs = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["ifcopenshell", "ifcopenshell.*"]
+follow_imports = "skip"

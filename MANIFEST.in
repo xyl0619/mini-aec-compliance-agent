@@ -1,0 +1,28 @@
+include .env.example
+include .gitattributes
+include .dockerignore
+include .gitignore
+include .python-version
+include .secrets.baseline
+include Dockerfile
+include compose.yaml
+include SECURITY.md
+include CONTRIBUTING.md
+include agent.py
+include main.py
+include tools.py
+include requirements.txt
+include requirements-dev.txt
+include uv.lock
+include uv.toml
+include data/building.json
+include data/regulations.json
+include data/rules/bfa_2025_accessibility.json
+prune data/processed
+recursive-include .github *.yml
+recursive-include docs *.md
+recursive-include evaluation *.py *.json
+recursive-include examples *.ifc *.md
+recursive-include rag *.py
+recursive-include regulations *.md
+recursive-include scripts *.py

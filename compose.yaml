@@ -1,0 +1,25 @@
+services:
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      TOGETHER_API_KEY: ${TOGETHER_API_KEY:-}
+      MINI_AEC_SERVICE_API_KEY: ${MINI_AEC_SERVICE_API_KEY:?Set a service API key of at least 16 characters}
+      MINI_AEC_TELEMETRY_ENABLED: ${MINI_AEC_TELEMETRY_ENABLED:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    volumes:
+      - ./data/processed:/app/data/processed:ro
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2.0
+    stop_grace_period: 15s
+    restart: unless-stopped

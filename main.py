@@ -1,42 +1,13 @@
-from agent import run_agent
+"""Backward-compatible CLI entry point."""
 
+import sys
+from pathlib import Path
 
-def main():
+SRC_DIR = Path(__file__).resolve().parent / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
-    print("=" * 50)
-    print("Mini AEC Compliance Agent")
-    print("=" * 50)
-
-    print(
-        "Type 'exit' to quit.\n"
-    )
-
-    while True:
-
-        user_input = input("You: ").strip()
-
-        if user_input.lower() == "exit":
-            print("Goodbye!")
-            break
-
-        if not user_input:
-            continue
-
-        try:
-            answer = run_agent(user_input)
-
-            print()
-            print("Agent:")
-            print(answer)
-            print()
-
-        except Exception as error:
-
-            print()
-            print("An error occurred:")
-            print(error)
-            print()
-
+from mini_aec_agent.cli import main  # noqa: E402
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

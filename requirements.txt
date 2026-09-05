@@ -1,3 +1,2 @@
-together
-python-dotenv
-pytest
+# Compatibility install; pyproject.toml is the canonical dependency definition.
+-e .

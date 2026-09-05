@@ -1,32 +1,59 @@
 {
-  "note": "These are fictional demonstration rules for educational purposes only.",
+  "schema_version": 1,
+  "catalog_id": "mini-aec-fictional-demo",
+  "title": "Mini AEC fictional demonstration rules",
+  "version": "1.0.0",
+  "jurisdiction": "Demonstration only",
+  "status": "demonstration",
+  "note": "These rules are fictional and are provided only for educational testing.",
   "rules": [
     {
       "rule_id": "DOOR-WIDTH-001",
+      "version": "1.0",
       "applies_to": "door",
       "field": "width_mm",
       "operator": ">=",
       "threshold": 900,
       "unit": "mm",
-      "description": "Door clear width must be at least 900 mm."
+      "description": "Door clear width must be at least 900 mm.",
+      "source": {
+        "document_id": "MINI-AEC-DEMO",
+        "title": "Mini AEC fictional demonstration rules",
+        "verified": false,
+        "note": "Fictional threshold; not derived from a statutory document."
+      }
     },
     {
       "rule_id": "OFFICE-AREA-001",
+      "version": "1.0",
       "applies_to": "office",
       "field": "area_m2",
       "operator": ">=",
       "threshold": 10.0,
       "unit": "m2",
-      "description": "Office floor area must be at least 10 square metres."
+      "description": "Office floor area must be at least 10 square metres.",
+      "source": {
+        "document_id": "MINI-AEC-DEMO",
+        "title": "Mini AEC fictional demonstration rules",
+        "verified": false,
+        "note": "Fictional threshold; not derived from a statutory document."
+      }
     },
     {
       "rule_id": "SPACE-HEIGHT-001",
+      "version": "1.0",
       "applies_to": "space",
       "field": "ceiling_height_m",
       "operator": ">=",
       "threshold": 2.4,
       "unit": "m",
-      "description": "Occupied space ceiling height must be at least 2.4 metres."
+      "description": "Occupied space ceiling height must be at least 2.4 metres.",
+      "source": {
+        "document_id": "MINI-AEC-DEMO",
+        "title": "Mini AEC fictional demonstration rules",
+        "verified": false,
+        "note": "Fictional threshold; not derived from a statutory document."
+      }
     }
   ]
 }

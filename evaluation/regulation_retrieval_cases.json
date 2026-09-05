@@ -1,0 +1,42 @@
+[
+  {
+    "id": "mandatory_door_width",
+    "query": "door width doors accessible routes 800 mm",
+    "expected_chunk_ids": ["BFA2025-p066-c001"]
+  },
+  {
+    "id": "access_route_width",
+    "query": "access route clear width",
+    "expected_chunk_ids": ["BFA2025-p032-c002"]
+  },
+  {
+    "id": "door_handle_space",
+    "query": "unobstructed area door handle",
+    "expected_chunk_ids": ["BFA2025-p066-c001", "BFA2025-p071-c002"]
+  },
+  {
+    "id": "door_threshold",
+    "query": "door threshold gradient",
+    "expected_chunk_ids": ["BFA2025-p071-c002"]
+  },
+  {
+    "id": "ramp_gradient",
+    "query": "ramp gradient wheelchair",
+    "expected_chunk_ids": ["BFA2025-p039-c001"]
+  },
+  {
+    "id": "tactile_path",
+    "query": "tactile guide path access route",
+    "expected_chunk_ids": ["BFA2025-p032-c002"]
+  },
+  {
+    "id": "stair_handrail",
+    "query": "stair handrail height",
+    "expected_chunk_ids": ["BFA2025-p056-c001"]
+  },
+  {
+    "id": "lift_dimensions",
+    "query": "lift car internal dimensions wheelchair",
+    "expected_chunk_ids": ["BFA2025-p114-c001"]
+  }
+]
