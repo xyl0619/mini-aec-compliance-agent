@@ -192,7 +192,7 @@ uv run python scripts/generate_ifc_report.py \
 Or start the containerized API, which uses the committed IFC sample by default:
 
 ```powershell
-$env:MINI_AEC_SERVICE_API_KEY = "replace-with-a-unique-random-value"
+$env:MINI_AEC_SERVICE_API_KEY = "replace-with-a-unique-random-value" # pragma: allowlist secret
 docker compose up --build
 ```
 
