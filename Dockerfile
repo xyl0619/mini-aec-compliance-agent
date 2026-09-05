@@ -1,6 +1,6 @@
 FROM ghcr.io/astral-sh/uv:0.10.7 AS uv
 
-FROM python:3.12.13-slim-bookworm
+FROM python:3.14.7-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
