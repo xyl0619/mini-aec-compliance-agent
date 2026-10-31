@@ -21,7 +21,7 @@ dependencies = [
     "pydantic>=2.13,<3",
     "pypdf[crypto]>=6,<7",
     "python-dotenv>=1.2,<2",
-    "together>=2.0,<3",
+    "together>=2.0,<4",
     "uvicorn[standard]>=0.35,<1",
 ]
 
